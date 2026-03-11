@@ -125,9 +125,7 @@ function resolverSedesYDireccion(localRaw, row, numericHeaders, headerIndex) {
   }
 
   const localPrincipal = obtenerLocalPrincipal(sede1);
-  const direccion1 = encontrarDireccion(sede1);
-  const direccion2 = encontrarDireccion(sede2);
-  const direccion = [direccion1, direccion2].filter((d, i, arr) => d && arr.indexOf(d) === i).join(' y ');
+  const direccion = encontrarDireccion(sede1);
 
   return { sede1, sede2, localPrincipal, direccion };
 }
@@ -165,17 +163,17 @@ function procesar() {
       const { sede1, sede2, localPrincipal, direccion } = resolverSedesYDireccion(localPract, r, numericHeaders, headerIndex);
 
       const base = {
-        'ARCHIVO': archivo,
-        'CARRERA': carrera.toUpperCase(),
-        'CURSO': headerIndex['CURSO']!==undefined ? (r[headerIndex['CURSO']]||'') : '',
-        'DOCENTE': headerIndex['DOCENTE']!==undefined ? (r[headerIndex['DOCENTE']]||'') : '',
-        'AULA': aula,
-        'ZOOM VIRTUALES': headerIndex['ZOOM VIRTUALES']!==undefined ? (r[headerIndex['ZOOM VIRTUALES']]||'') : '',
-        'PRÁCTICAS PRESENCIALES': headerIndex['PRÁCTICAS PRESENCIALES']!==undefined ? (r[headerIndex['PRÁCTICAS PRESENCIALES']]||'') : '',
-        'SEDE1': sede1,
-        'SEDE2': sede2,
-        'LOCAL DE PRÁCTICAS PRESENCIALES': localPrincipal,
-        'DIRECCIÓN': direccion
+        'archivo': archivo,
+        'carrera': carrera.toUpperCase(),
+        'curso': headerIndex['CURSO']!==undefined ? (r[headerIndex['CURSO']]||'') : '',
+        'docente': headerIndex['DOCENTE']!==undefined ? (r[headerIndex['DOCENTE']]||'') : '',
+        'aula': aula,
+        'zoom virtuales': headerIndex['ZOOM VIRTUALES']!==undefined ? (r[headerIndex['ZOOM VIRTUALES']]||'') : '',
+        'prácticas presenciales': headerIndex['PRÁCTICAS PRESENCIALES']!==undefined ? (r[headerIndex['PRÁCTICAS PRESENCIALES']]||'') : '',
+        'sede1': sede1,
+        'sede2': sede2,
+        'local de prácticas presenciales': localPrincipal,
+        'dirección': direccion
       };
 
       numericHeaders.forEach(nh => {
@@ -200,7 +198,7 @@ function procesar() {
       salidaArray.push(base);
     });
 
-    const salidaHeaders = ['ARCHIVO','CARRERA','CURSO','DOCENTE','AULA','ZOOM VIRTUALES','PRÁCTICAS PRESENCIALES','SEDE1','SEDE2','LOCAL DE PRÁCTICAS PRESENCIALES','DIRECCIÓN'];
+    const salidaHeaders = ['archivo','carrera','curso','docente','aula','zoom virtuales','prácticas presenciales','sede1','sede2','local de prácticas presenciales','dirección'];
     numericHeaders.forEach(nh => salidaHeaders.push('img'+nh));
     numericHeaders.forEach(nh => salidaHeaders.push('mod'+nh));
 
@@ -237,7 +235,7 @@ function mostrarPrevisualizacion() {
     html += '<table border="1" cellpadding="6" style="border-collapse:collapse">';
 
     html += '<tr>';
-    const salidaHeaders = ['ARCHIVO','CARRERA','CURSO','DOCENTE','AULA','ZOOM VIRTUALES','PRÁCTICAS PRESENCIALES','SEDE1','SEDE2','LOCAL DE PRÁCTICAS PRESENCIALES','DIRECCIÓN'];
+     const salidaHeaders = ['archivo','carrera','curso','docente','aula','zoom virtuales','prácticas presenciales','sede1','sede2','local de prácticas presenciales','dirección'];
     salidaHeaders.forEach(h => html += '<th>'+h+'</th>');
     numericHeaders.forEach(nh => html += '<th>img'+nh+'</th>');
     numericHeaders.forEach(nh => html += '<th>mod'+nh+'</th>');
@@ -247,7 +245,7 @@ function mostrarPrevisualizacion() {
       const aula = (headerIndex['AULA']!==undefined) ? String(r[headerIndex['AULA']]||'') : '';
       const archivo = (carrera.substring(0,3).toUpperCase() || '') + '-' + aula;
       const localPract = headerIndex['LOCAL DE PRÁCTICAS PRESENCIALES']!==undefined ? (r[headerIndex['LOCAL DE PRÁCTICAS PRESENCIALES']]||'') : '';
-      const { sede1, sede2, localPrincipal, direccion } = resolverSedesYDireccion(localPract, r, numericHeaders, headerIndex);
+     const { sede1, sede2, localPrincipal, direccion } = resolverSedesYDireccion(localPract, r, numericHeaders, headerIndex);
 
       html += '<tr>';
       html += '<td>'+archivo+'</td>';
