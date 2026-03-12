@@ -106,6 +106,12 @@ function contieneSOP(row, numericHeaders, headerIndex) {
   });
 }
 
+
+function esMarcaCheck(valor) {
+  const cell = String(valor || '').trim().normalize('NFKC').replace(/\uFE0F/g, '');
+  return ['✔', '✓', '☑', '✅'].includes(cell);
+}
+
 function resolverSedesYDireccion(localRaw, row, numericHeaders, headerIndex) {
   const local = String(localRaw || '').trim();
   const partes = local.split('/').map(p => p.trim()).filter(Boolean);
@@ -126,8 +132,9 @@ function resolverSedesYDireccion(localRaw, row, numericHeaders, headerIndex) {
 
   const localPrincipal = obtenerLocalPrincipal(sede1);
   const direccion = encontrarDireccion(sede1);
+  const direccion2 = encontrarDireccion(sede2);
 
-  return { sede1, sede2, localPrincipal, direccion };
+  return { sede1, sede2, localPrincipal, direccion, direccion2 };
 }
 
 function procesar() {
@@ -157,13 +164,13 @@ function procesar() {
 
     rowsAoA.forEach(r => {
       const aula = (headerIndex['AULA']!==undefined) ? String(r[headerIndex['AULA']]||'') : '';
-      const archivo = (carrera.substring(0,3).toUpperCase() || '') + '-' + aula;
+      const imgName = (carrera.substring(0,3).toUpperCase() || '') + '-' + aula;
 
       const localPract = headerIndex['LOCAL DE PRÁCTICAS PRESENCIALES']!==undefined ? (r[headerIndex['LOCAL DE PRÁCTICAS PRESENCIALES']]||'') : '';
-      const { sede1, sede2, localPrincipal, direccion } = resolverSedesYDireccion(localPract, r, numericHeaders, headerIndex);
+     const { sede1, sede2, localPrincipal, direccion, direccion2 } = resolverSedesYDireccion(localPract, r, numericHeaders, headerIndex);
 
       const base = {
-        'archivo': archivo,
+       'img-name': imgName,
         'carrera': carrera.toUpperCase(),
         'curso': headerIndex['CURSO']!==undefined ? (r[headerIndex['CURSO']]||'') : '',
         'docente': headerIndex['DOCENTE']!==undefined ? (r[headerIndex['DOCENTE']]||'') : '',
@@ -173,14 +180,15 @@ function procesar() {
         'sede1': sede1,
         'sede2': sede2,
         'local de prácticas presenciales': localPrincipal,
-        'dirección': direccion
+        'dirección': direccion,
+        'dirección2': direccion2
       };
 
       numericHeaders.forEach(nh => {
         const idx = headerIndex[nh];
         const cell = idx!==undefined ? String(r[idx]||'').trim() : '';
         let imgVal = '';
-        if (cell === '✔') imgVal = 'ZOOM';
+        if (esMarcaCheck(cell)) imgVal = 'ZOOM';
         else if (cell === 'X') imgVal = '';
         else if (cell !== '') imgVal = 'GP';
         base['img' + nh] = imgVal;
@@ -190,7 +198,7 @@ function procesar() {
         const idx = headerIndex[nh];
         const cell = idx!==undefined ? String(r[idx]||'').trim() : '';
         let modVal = '';
-        if (cell === '✔' || cell === 'X') modVal = '';
+        if (esMarcaCheck(cell) || cell === 'X') modVal = '';
         else modVal = cell;
         base['mod' + nh] = modVal;
       });
@@ -198,7 +206,7 @@ function procesar() {
       salidaArray.push(base);
     });
 
-    const salidaHeaders = ['archivo','carrera','curso','docente','aula','zoom virtuales','prácticas presenciales','sede1','sede2','local de prácticas presenciales','dirección'];
+   const salidaHeaders = ['img-name','carrera','curso','docente','aula','zoom virtuales','prácticas presenciales','sede1','sede2','local de prácticas presenciales','dirección','dirección2'];
     numericHeaders.forEach(nh => salidaHeaders.push('img'+nh));
     numericHeaders.forEach(nh => salidaHeaders.push('mod'+nh));
 
@@ -235,7 +243,7 @@ function mostrarPrevisualizacion() {
     html += '<table border="1" cellpadding="6" style="border-collapse:collapse">';
 
     html += '<tr>';
-     const salidaHeaders = ['archivo','carrera','curso','docente','aula','zoom virtuales','prácticas presenciales','sede1','sede2','local de prácticas presenciales','dirección'];
+    const salidaHeaders = ['img-name','carrera','curso','docente','aula','zoom virtuales','prácticas presenciales','sede1','sede2','local de prácticas presenciales','dirección','dirección2'];
     salidaHeaders.forEach(h => html += '<th>'+h+'</th>');
     numericHeaders.forEach(nh => html += '<th>img'+nh+'</th>');
     numericHeaders.forEach(nh => html += '<th>mod'+nh+'</th>');
@@ -243,28 +251,29 @@ function mostrarPrevisualizacion() {
 
     rowsAoA.forEach(r => {
       const aula = (headerIndex['AULA']!==undefined) ? String(r[headerIndex['AULA']]||'') : '';
-      const archivo = (carrera.substring(0,3).toUpperCase() || '') + '-' + aula;
+      const imgName = (carrera.substring(0,3).toUpperCase() || '') + '-' + aula;
       const localPract = headerIndex['LOCAL DE PRÁCTICAS PRESENCIALES']!==undefined ? (r[headerIndex['LOCAL DE PRÁCTICAS PRESENCIALES']]||'') : '';
-     const { sede1, sede2, localPrincipal, direccion } = resolverSedesYDireccion(localPract, r, numericHeaders, headerIndex);
+     const { sede1, sede2, localPrincipal, direccion, direccion2 } = resolverSedesYDireccion(localPract, r, numericHeaders, headerIndex);
 
       html += '<tr>';
-      html += '<td>'+archivo+'</td>';
+      html += '<td>'+imgName+'</td>';
       html += '<td>'+carrera.toUpperCase()+'</td>';
       html += '<td>'+ (headerIndex['CURSO']!==undefined ? (r[headerIndex['CURSO']]||'') : '') +'</td>';
       html += '<td>'+ (headerIndex['DOCENTE']!==undefined ? (r[headerIndex['DOCENTE']]||'') : '') +'</td>';
       html += '<td>'+ aula +'</td>';
       html += '<td>'+ (headerIndex['ZOOM VIRTUALES']!==undefined ? (r[headerIndex['ZOOM VIRTUALES']]||'') : '') +'</td>';
       html += '<td>'+ (headerIndex['PRÁCTICAS PRESENCIALES']!==undefined ? (r[headerIndex['PRÁCTICAS PRESENCIALES']]||'') : '') +'</td>';
-      html += '<td>'+ sede1 +'</td>';
+     html += '<td>'+ sede1 +'</td>';
       html += '<td>'+ sede2 +'</td>';
       html += '<td>'+ localPrincipal +'</td>';
       html += '<td>'+ direccion +'</td>';
+      html += '<td>'+ direccion2 +'</td>';
 
       numericHeaders.forEach(nh => {
         const idx = headerIndex[nh];
         const cell = idx!==undefined ? String(r[idx]||'').trim() : '';
         let imgVal = '';
-        if (cell === '✔') imgVal = 'ZOOM';
+       if (esMarcaCheck(cell)) imgVal = 'ZOOM';
         else if (cell === 'X') imgVal = '';
         else if (cell !== '') imgVal = 'GP';
         html += '<td>'+imgVal+'</td>';
@@ -274,7 +283,7 @@ function mostrarPrevisualizacion() {
         const idx = headerIndex[nh];
         const cell = idx!==undefined ? String(r[idx]||'').trim() : '';
         let modVal = '';
-        if (cell === '✔' || cell === 'X') modVal = '';
+         if (esMarcaCheck(cell) || cell === 'X') modVal = '';
         else modVal = cell;
         html += '<td>'+modVal+'</td>';
       });
