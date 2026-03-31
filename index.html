@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PROGRAMACIÓN</title>
+    <title>PROGRAMACIONES CRONO</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -398,7 +398,8 @@
 
         function resolverSedesYDireccion(localRaw, row, numericHeaders, headerIndex) {
             const local = String(localRaw || '').trim();
-            const partes = local.split('/').map(p => p.trim()).filter(Boolean);
+            // Separador tanto / como - (siempre que no sea parte de un número como Arequipa N°1473-1481)
+            const partes = local.split(/ \/ | \- |\/|\-/).map(p => p.trim()).filter(Boolean);
             const sopDetectado = contieneSOP(row, numericHeaders, headerIndex);
 
             let sede1Raw = '';
@@ -414,10 +415,20 @@
                 sede1Raw = local;
             }
 
-            const match1 = encontrarSedeYDireccion(sede1Raw);
-            const match2 = encontrarSedeYDireccion(sede2Raw);
+            let match1 = encontrarSedeYDireccion(sede1Raw);
+            let match2 = encontrarSedeYDireccion(sede2Raw);
 
-            if (!sede2Raw) match2.clave = '';
+            // Regla: si Sede 1 es CLINICA y Sede 2 es CENTRAL, ignorar Sede 2
+            if (match1.clave === 'CLINICA' && match2.clave === 'CENTRAL') {
+                match2 = { clave: '', direccion: '' };
+            }
+
+            // Evitar duplicados (ej: si Sede 1 es CLINICA y Sede 2 quedó como CLINICA-ELEKTRA)
+            if (match1.clave && match1.clave === match2.clave) {
+                match2 = { clave: '', direccion: '' };
+            }
+
+            if (!match2.clave) match2.clave = '';
 
             return {
                 sede1: match1.clave,
